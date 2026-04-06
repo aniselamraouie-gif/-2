@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>بنك تواريخ الباك 2026 - الإصدار الشامل</title>
+    <style>
+        :root { --bg: #020617; --card: #1e293b; --accent: #38bdf8; --correct: #10b981; --wrong: #ef4444; }
+        body { background: var(--bg); color: white; font-family: 'Arial', sans-serif; display: flex; justify-content: center; padding: 20px; margin: 0; line-height: 1.6; }
+        .app-container { width: 100%; max-width: 550px; text-align: center; }
+        .stats-bar { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: var(--card); padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #334155; }
+        .screen { background: #0f172a; border: 2px solid var(--accent); padding: 40px 20px; border-radius: 25px; min-height: 220px; margin-bottom: 20px; position: relative; box-shadow: 0 0 20px rgba(56, 189, 248, 0.1); }
+        #event-text { font-size: 1.6rem; font-weight: bold; min-height: 70px; display: flex; align-items: center; justify-content: center; color: #f8fafc; }
+        #date-text { font-size: 2.1rem; color: var(--accent); margin-top: 15px; visibility: hidden; transition: 0.2s; font-weight: 800; }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        button { padding: 16px; border-radius: 12px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 1rem; }
+        .btn-main { background: var(--accent); color: #020617; grid-column: span 2; }
+        .btn-correct { background: var(--correct); color: white; display: none; }
+        .btn-wrong { background: var(--wrong); color: white; display: none; }
+        .add-section { background: var(--card); padding: 25px; border-radius: 20px; margin-top: 40px; border: 1px dashed #475569; }
+        input { width: 92%; padding: 14px; margin: 10px 0; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: white; text-align: center; font-size: 1rem; }
+        .btn-add { background: #6366f1; color: white; width: 100%; margin-top: 10px; }
+        .visible { visibility: visible !important; }
+        .unit-badge { font-size: 0.85rem; color: #94a3b8; margin-bottom: 10px; display: block; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <h2 style="color: var(--accent); margin-bottom: 5px;">🎓 منصة التواريخ النهائية</h2>
+    <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 20px;">تم التحقق من كافة تواريخ البرنامج الرسمي 2026</p>
+
+    <div class="stats-bar">
+        <div>✅ أتقنت: <b id="good-count">0</b></div>
+        <div>❌ مراجعة: <b id="bad-count">0</b></div>
+        <div>📚 الكلي: <b id="total-count">0</b></div>
+    </div>
+
+    <div class="screen">
+        <span id="unit-info" class="unit-badge">اضغط للبدء</span>
+        <div id="event-text">جاهز للتحدي؟</div>
+        <div id="date-text">-- / -- / ----</div>
+    </div>
+
+    <div class="btn-grid">
+        <button id="spin-btn" class="btn-main" onclick="startSpin()">تدوير واختيار ذكي 🎲</button>
+        <button id="reveal-btn" class="btn-main" style="display:none;" onclick="reveal()">كشف التاريخ 🔓</button>
+        <button id="wrong-btn" class="btn-wrong" onclick="markAs(false)">أحتاج مراجعة ❌</button>
+        <button id="correct-btn" class="btn-correct" onclick="markAs(true)">حفظته تماماً ✅</button>
+    </div>
+
+    <div class="add-section">
+        <h3 style="margin-top:0;">➕ أضف تاريخاً غير موجود</h3>
+        <input type="text" id="new-event" placeholder="مثال: مؤتمر باندونغ">
+        <input type="text" id="new-date" placeholder="مثال: 18-24 أفريل 1955">
+        <button class="btn-add" onclick="addNewDate()">حفظ في بنكي الخاص</button>
+    </div>
+</div>
+
+<script>
+// القائمة الشاملة لجميع تواريخ بكالوريا 2026 (الشعب العلمية)
+const defaultData = [
+    { e: "مبدأ ترومان", d: "12 مارس 1947", u: "الوحدة 1", s: 0 },
+    { e: "مشروع مارشال", d: "05 جوان 1947", u: "الوحدة 1", s: 0 },
+    { e: "مبدأ جيدانوف", d: "22 سبتمبر 1947", u: "الوحدة 1", s: 0 },
+    { e: "مكتب الكومنفورم", d: "06 أكتوبر 1947", u: "الوحدة 1", s: 0 },
+    { e: "منظمة الكوميكون", d: "25 جانفي 1949", u: "الوحدة 1", s: 0 },
+    { e: "حلف الناتو (الأطلسي)", d: "04 أفريل 1949", u: "الوحدة 1", s: 0 },
+    { e: "وفاة ستالين", d: "05 مارس 1953", u: "الوحدة 1", s: 0 },
+    { e: "هدنة كوريا (بان مون جوم)", d: "27 جويلية 1953", u: "الوحدة 1", s: 0 },
+    { e: "حلف بغداد", d: "24 فيفري 1955", u: "الوحدة 1", s: 0 },
+    { e: "حلف وارسو", d: "14 ماي 1955", u: "الوحدة 1", s: 0 },
+    { e: "مشروع إيزنهاور", d: "05 جانفي 1957", u: "الوحدة 1", s: 0 },
+    { e: "بناء جدار برلين", d: "13 أوت 1961", u: "الوحدة 1", s: 0 },
+    { e: "حركة عدم الانحياز", d: "01-06 سبتمبر 1961", u: "الوحدة 1", s: 0 },
+    { e: "سقوط جدار برلين", d: "09 نوفمبر 1989", u: "الوحدة 1", s: 0 },
+    { e: "مؤتمر مالطا", d: "03-04 ديسمبر 1989", u: "الوحدة 1", s: 0 },
+    { e: "مؤتمر باريس (نهاية الباردة)", d: "19-21 نوفمبر 1990", u: "الوحدة 1", s: 0 },
+    { e: "حل حلف وارسو", d: "01 جويلية 1991", u: "الوحدة 1", s: 0 },
+    { e: "قمة ألما آتا (تفكك السوفيات)", d: "21 ديسمبر 1991", u: "الوحدة 1", s: 0 },
+    { e: "اللجنة الثورية للوحدة والعمل", d: "23 مارس 1954", u: "الوحدة 2", s: 0 },
+    { e: "اجتماع الـ 22 عضو", d: "جوان 1954", u: "الوحدة 2", s: 0 },
+    { e: "تأسيس جبهة التحرير الوطني", d: "23 أكتوبر 1954", u: "الوحدة 2", s: 0 },
+    { e: "اندلاع الثورة التحريرية", d: "01 نوفمبر 1954", u: "الوحدة 2", s: 0 },
+    { e: "هجومات الشمال القسنطيني", d: "20 أوت 1955", u: "الوحدة 2", s: 0 },
+    { e: "مؤتمر الصومام", d: "20 أوت 1956", u: "الوحدة 2", s: 0 },
+    { e: "القرصنة الجوية (خطف القادة)", d: "22 أكتوبر 1956", u: "الوحدة 2", s: 0 },
+    { e: "قصف ساقية سيدي يوسف", d: "08 فيفري 1958", u: "الوحدة 2", s: 0 },
+    { e: "الحكومة المؤقتة (GPRA)", d: "19 سبتمبر 1958", u: "الوحدة 2", s: 0 },
+    { e: "مشروع قسنطينة الإغرائي", d: "03 أكتوبر 1958", u: "الوحدة 2", s: 0 },
+    { e: "سلم الشجعان (مناورة ديغول)", d: "23 أكتوبر 1958", u: "الوحدة 2", s: 0 },
+    { e: "تقرير المصير (ديغول)", d: "16 سبتمبر 1959", u: "الوحدة 2", s: 0 },
+    { e: "مظاهرات 11 ديسمبر", d: "11 ديسمبر 1960", u: "الوحدة 2", s: 0 },
+    { e: "مظاهرات المهاجرين (باريس)", d: "17 أكتوبر 1961", u: "الوحدة 2", s: 0 },
+    { e: "اتفاقيات إيفيان الثانية", d: "07-18 مارس 1962", u: "الوحدة 2", s: 0 },
+    { e: "وقف إطلاق النار (عيد النصر)", d: "19 مارس 1962", u: "الوحدة 2", s: 0 },
+    { e: "مؤتمر طرابلس", d: "جوان 1962", u: "الوحدة 2", s: 0 },
+    { e: "استفتاء تقرير المصير", d: "01 جويلية 1962", u: "الوحدة 2", s: 0 },
+    { e: "استقلال الجزائر الرسمي", d: "05 جويلية 1962", u: "الوحدة 2", s: 0 }
+];
+
+let database = JSON.parse(localStorage.getItem('final_bac_dates')) || defaultData;
+let currentItem = null;
+
+function updateStats() {
+    document.getElementById('good-count').innerText = database.filter(i => i.s > 2).length;
+    document.getElementById('bad-count').innerText = database.filter(i => i.s < 0).length;
+    document.getElementById('total-count').innerText = database.length;
+}
+
+function addNewDate() {
+    const eIn = document.getElementById('new-event');
+    const dIn = document.getElementById('new-date');
+    if(!eIn.value || !dIn.value) { alert("أكمل البيانات أولاً!"); return; }
+    if(database.find(i => i.e.trim() === eIn.value.trim())) { alert("التاريخ موجود مسبقاً!"); return; }
+    
+    database.push({ e: eIn.value, d: dIn.value, u: "إضافة شخصية", s: 0 });
+    localStorage.setItem('final_bac_dates', JSON.stringify(database));
+    alert("تمت الإضافة بنجاح ✅");
+    eIn.value = ""; dIn.value = "";
+    updateStats();
+}
+
+function startSpin() {
+    document.getElementById('date-text').classList.remove('visible');
+    document.getElementById('reveal-btn').style.display = "none";
+    let timer = 0;
+    let fastSpin = setInterval(() => {
+        document.getElementById('event-text').innerText = database[Math.floor(Math.random()*database.length)].e;
+        timer++;
+        if(timer > 10) { clearInterval(fastSpin); selectSmartly(); }
+    }, 70);
+}
+
+function selectSmartly() {
+    let sorted = [...database].sort((a, b) => a.s - b.s);
+    currentItem = sorted[Math.floor(Math.random() * Math.min(7, sorted.length))];
+    document.getElementById('event-text').innerText = currentItem.e;
+    document.getElementById('date-text').innerText = currentItem.d;
+    document.getElementById('unit-info').innerText = currentItem.u;
+    document.getElementById('spin-btn').style.display = "none";
+    document.getElementById('reveal-btn').style.display = "block";
+}
+
+function reveal() {
+    document.getElementById('date-text').classList.add('visible');
+    document.getElementById('reveal-btn').style.display = "none";
+    document.getElementById('correct-btn').style.display = "block";
+    document.getElementById('wrong-btn').style.display = "block";
+}
+
+function markAs(isCorrect) {
+    let idx = database.findIndex(i => i.e === currentItem.e);
+    if(isCorrect) database[idx].s += 3; else database[idx].s -= 2;
+    localStorage.setItem('final_bac_dates', JSON.stringify(database));
+    updateStats();
+    document.getElementById('correct-btn').style.display = "none";
+    document.getElementById('wrong-btn').style.display = "none";
+    document.getElementById('spin-btn').style.display = "block";
+    document.getElementById('event-text').innerText = "تم التسجيل.. اختر التالي";
+    document.getElementById('date-text').classList.remove('visible');
+}
+
+window.onload = updateStats;
+</script>
+</body>
+</html>
